@@ -1,12 +1,15 @@
-const http = require('http');
-const app = require('./app');
+const express = require('express')
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose');
+const path = require('path');
+const cors = require('cors')
 
 const sauceRoutes = require('./routes/sauce');
 const userRoutes = require('./routes/user');
 
 const app = express();
+
+app.use(cors());
 
 mongoose.connect('mongodb+srv://dbuser:user@cluster0.u1id9.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',
   { useNewUrlParser: true,
@@ -23,6 +26,7 @@ app.use((req, res, next) => {
 
 app.use(bodyParser.json());
 
+app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use('/api/sauces', sauceRoutes);
 app.use('/api/auth', userRoutes);
 
