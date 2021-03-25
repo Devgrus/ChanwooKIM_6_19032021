@@ -7,11 +7,15 @@ exports.createSauce = (req, res, next) => {
     const sauceObject = JSON.parse(req.body.sauce);
     delete sauceObject._id;
     const sauce = new Sauce({
-      ...sauceObject,
-      imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+        ...sauceObject,
+        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
+        likes: 0,
+        dislikes: 0,
+        usersLiked: [],
+        usersDisliked: []
     });
     sauce.save()
-      .then(() => res.status(201).json({ message: 'Sauce enregistré !'}))
+      .then(() => res.status(201).json({ message: 'Sauce enregistrée !'}))
       .catch(error => res.status(400).json({error}));
 };
 
@@ -23,7 +27,7 @@ exports.modifySauce = (req, res, next) => {
             imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
         } : {...req.body};
     Sauce.updateOne({_id: req.params.id}, { ...req.body, _id: req.params.id})
-        .then(() => res.status(200).json({ message: 'Objet modifié !'}))
+        .then(() => res.status(200).json({ message: 'Sauce modifiée !'}))
         .catch(error => res.status(400).json({error}));
 };
 
@@ -31,14 +35,10 @@ exports.modifySauce = (req, res, next) => {
 exports.deleteSauce = (req, res, next) => {
     Sauce.findOne({_id: req.params.id})
         .then(sauce => {
-            if (sauce.userId !== req.user) {
-                return res.status(401).json({ message : 'Vous ne pouvez pas supprimer cette sauce' });
-            }
-            
             const filename = sauce.imageUrl.split('/images/')[1];
             fs.unlink(`images/${filename}`, () => {
                 Sauce.deleteOne({_id: req.params.id})
-                    .then(() => res.status(200).json({message: 'Sauce supprimé !'}))
+                    .then(() => res.status(200).json({message: 'Sauce supprimée !'}))
                     .catch(error => res.status(400).json({error}));
             });
         })
@@ -68,7 +68,7 @@ exports.rateSauce = (req, res, next) => {
                     //Annulation de Like
                     if(sauce.usersLiked.includes(req.body.userId)) {
                         Sauce.updateOne({_id: req.params.id},{
-                            $pull : {userLiked: req.body.userId},
+                            $pull : {usersLiked: req.body.userId},
                             $inc : {likes: -1}
                         })
                         .then(() => res.status(200).json({message: 'Like annulé'}))
@@ -77,7 +77,7 @@ exports.rateSauce = (req, res, next) => {
                     //Annulation de Dislike
                     if(sauce.usersDisliked.includes(req.body.userId)) {
                         Sauce.updateOne({_id: req.params.id},{
-                            $pull : {userLiked: req.body.userId},
+                            $pull : {usersDisliked: req.body.userId},
                             $inc : {dislikes: -1}
                         })
                         .then(() => res.status(200).json({message: 'Dislike annulé'}))
