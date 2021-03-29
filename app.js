@@ -4,19 +4,21 @@ const mongoose = require('mongoose');
 const path = require('path');
 const cors = require('cors')
 
+//Importer les routes sauce et user
 const sauceRoutes = require('./routes/sauce');
 const userRoutes = require('./routes/user');
 
 const app = express();
 
-app.use(cors());
-
+//MongoDB
 mongoose.connect('mongodb+srv://dbuser:user@cluster0.u1id9.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',
   { useNewUrlParser: true,
     useUnifiedTopology: true })
   .then(() => console.log('Connexion à MongoDB réussie !'))
   .catch(() => console.log('Connexion à MongoDB échouée !'));
 
+// Pour éviter les erreurs de CORS
+app.use(cors());
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
@@ -24,6 +26,10 @@ app.use((req, res, next) => {
     next();
 });
 
+// Cacher le header 'x-powered-by'
+app.disable('x-powered-by');
+
+// Utiliser le package <bodyParser>
 app.use(bodyParser.json());
 
 app.use('/images', express.static(path.join(__dirname, 'images')));
