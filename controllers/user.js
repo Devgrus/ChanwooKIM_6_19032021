@@ -1,14 +1,26 @@
+// Hachage de mot de passe
 const bcrypt = require('bcrypt');
+
+// Gestion de token
 const jwt = require('jsonwebtoken');
 
 const User = require('../models/User');
+
+// Crpytage d'email
+const CryptoJS = require('crypto-js');
+function cryptEmail(email) {
+  const key ="ky";
+  const keyutf = CryptoJS.enc.Utf8.parse(key);
+  const iv = CryptoJS.enc.Base64.parse(key);
+  return CryptoJS.AES.encrypt(email, keyutf, { iv: iv }).toString();
+}
 
 //Création d'un compte
 exports.signup = (req, res, next) => {
     bcrypt.hash(req.body.password, 10)
       .then(hash => {
         const user = new User({
-          email: req.body.email,
+          email: cryptEmail(req.body.email),
           password: hash
         });
         user.save()
@@ -18,9 +30,9 @@ exports.signup = (req, res, next) => {
       .catch(error => res.status(500).json({error}));
   };
 
-  //se connecter
+// Login
 exports.login = (req, res, next) => {
-  User.findOne({email: req.body.email})
+  User.findOne({email: cryptEmail(req.body.email)})
     .then(user => {
       if (!user) {
         return res.status(401).json({error: 'Utilisateur introuvable !'});
