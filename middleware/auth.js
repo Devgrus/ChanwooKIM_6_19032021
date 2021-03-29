@@ -1,3 +1,4 @@
+//Protection des routes et authentification des utilisateurs
 const jwt = require('jsonwebtoken');
 
 module.exports = (req, res, next) => {
